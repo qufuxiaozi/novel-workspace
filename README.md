@@ -10,7 +10,11 @@ node app/server.mjs
 
 ## Windows 和 macOS
 
-在 Windows 或 macOS 上安装对应版本的 Node.js，然后运行上述命令，在浏览器打开工作台。发布包为跨平台源码包。
+先按操作系统和处理器选择便携包，然后完整解压。Windows 双击 `Windows专用-启动写作台.cmd`，macOS 双击 `macOS专用-启动写作台.command`。脚本优先使用已安装且支持本项目的 Node.js 24 或更新版本。系统版本缺失或不兼容时，便携包自动使用随包的 Node.js 24，系统安装由用户自行管理。若使用源码包，请先安装兼容版本。
+
+脚本会启动本机服务，等页面可访问后自动打开默认浏览器。使用期间保持启动窗口打开。
+
+如果 macOS 提示文件不可执行，在解压目录运行 `chmod +x "macOS专用-启动写作台.command"`，再双击。也可在终端运行 `sh "macOS专用-启动写作台.command"`。如果需要手动启动，在解压目录运行 `node app/server.mjs`，然后访问上面的本机地址。
 
 Windows 可在「设置 → AI 模型」加密保存 API Key，使用当前 Windows 用户的 DPAPI。请在安装后填入自己的 Key。macOS 和 Linux 的云端 Key 由启动进程的环境变量提供。本机 Ollama 无需 Key。
 
@@ -29,15 +33,6 @@ ssh -N -L 4312:127.0.0.1:4312 username@your-server
 设置页提供火山方舟 Agent Plan、火山方舟平台 API、DeepSeek、阿里云百炼、智谱 GLM、Kimi、OpenAI API、本机 Ollama 和自定义 Chat Completions 兼容接口。填写服务商允许调用的模型 ID 和该接口对应的 Key。百炼支持填写与 Key 同地域的工作空间地址。
 
 macOS 或 Linux 的服务环境提供 `NOVEL_AI_BASE_URL`、`NOVEL_AI_MODEL` 和 `NOVEL_AI_API_KEY`。请使用系统服务的私有环境配置，权限仅授予运行账号。网页订阅是否支持 API 调用由各服务商的套餐规则决定。
-
-快速启动
-1. 安装 Node.js 24 或更新版本，下载并解压 novel-workspace-source.zip。
-2. 在解压后包含 app 文件夹的目录中打开终端，运行 node app/server.mjs。
-3. 保持终端开启，在浏览器访问 http://127.0.0.1:4312/。
-请通过浏览器地址访问工作台。直接双击 app/index.html 会因无法连接本机服务而出现空白页。基础写作无需 API Key。
-
-发布页应写默认端口 4312。`4314` 是这次在你电脑上并行测试发布包时临时使用的端口。
-
 
 ## 示例与发布
 
