@@ -30,6 +30,15 @@ ssh -N -L 4312:127.0.0.1:4312 username@your-server
 
 macOS 或 Linux 的服务环境提供 `NOVEL_AI_BASE_URL`、`NOVEL_AI_MODEL` 和 `NOVEL_AI_API_KEY`。请使用系统服务的私有环境配置，权限仅授予运行账号。网页订阅是否支持 API 调用由各服务商的套餐规则决定。
 
+快速启动
+1. 安装 Node.js 24 或更新版本，下载并解压 novel-workspace-source.zip。
+2. 在解压后包含 app 文件夹的目录中打开终端，运行 node app/server.mjs。
+3. 保持终端开启，在浏览器访问 http://127.0.0.1:4312/。
+请通过浏览器地址访问工作台。直接双击 app/index.html 会因无法连接本机服务而出现空白页。基础写作无需 API Key。
+
+发布页应写默认端口 4312。`4314` 是这次在你电脑上并行测试发布包时临时使用的端口。
+
+
 ## 示例与发布
 
 用 `examples/雾港来信.txt` 测试参考小说导入、卷章定位和竞品拆书。示例为原创演示文本。
