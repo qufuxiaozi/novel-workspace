@@ -1,0 +1,14 @@
+/data/
+/release/
+/运营总监简历.docx
+/运营总监简历.pdf
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
