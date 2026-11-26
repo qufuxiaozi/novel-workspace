@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>小说工作台</title>
+<title>小鱼小说写作</title>
 <style>
 *{box-sizing:border-box} [hidden]{display:none!important}
 :root{--paper:#f6f3ec;--white:#fcfaf5;--surface-alt:#f0eee5;--field:#fffdf8;--ink:#252923;--muted:#686c60;--line:#ddd9cd;--green:#29473b;--gold:#d0a969;--rail-bg:#eaece2;--rail-border:#d8ddcf;--rail-active:#dce8dd;--rail-active-border:#b8c9ba;--hover-bg:#faf9f3;--primary-bg:#29473b;--primary-text:#fff;--hero-bg:#233d32;--hero-text:#fff;--writing-overlay:rgba(246,243,236,.82);--writing-bg-image:none}
@@ -15,7 +15,7 @@ button.primary{background:var(--primary-bg);color:var(--primary-text);border-col
 h1,h2,h3,p{margin:0} h1,h2,.serif{font-family:"Noto Serif SC","Songti SC",SimSun,serif} h1{font-size:44px;line-height:1.2} h2{font-size:25px} h3{font-size:16px} p+ p{margin-top:8px}
 .shell{display:grid;grid-template-columns:195px minmax(0,1fr);min-height:100vh}
 .rail{background:var(--rail-bg);border-right:1px solid var(--rail-border);padding:30px 20px;display:flex;flex-direction:column;gap:34px}
-.rail-title{font-size:23px;font-weight:bold}.rail nav{display:grid;gap:8px}.rail button{text-align:left;background:transparent;border-color:transparent}.rail nav button[aria-current="page"]{background:var(--rail-active);border-color:var(--rail-active-border);color:var(--ink);font-weight:700;box-shadow:inset 4px 0 0 var(--green)}.rail nav button[aria-current="page"]:hover{background:var(--hover-bg);border-color:var(--rail-active-border)}.rail footer{margin-top:auto;color:var(--muted);font-size:13px}
+.rail-title{font-size:23px;font-weight:bold}.brand{display:flex;align-items:center;gap:9px;min-width:0}.brand-logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 1px 1px rgba(27,36,31,.16))}.brand-name{font:700 17px/1.2 "Noto Serif SC","Songti SC",SimSun,serif;white-space:nowrap}.rail nav{display:grid;gap:8px}.rail button{text-align:left;background:transparent;border-color:transparent}.rail nav button[aria-current="page"]{background:var(--rail-active);border-color:var(--rail-active-border);color:var(--ink);font-weight:700;box-shadow:inset 4px 0 0 var(--green)}.rail nav button[aria-current="page"]:hover{background:var(--hover-bg);border-color:var(--rail-active-border)}.rail footer{margin-top:auto;color:var(--muted);font-size:13px}
 main{min-width:0}.top{height:66px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:0 34px;color:var(--muted)}.page{max-width:1320px;margin:auto;padding:35px 34px 52px}
 .hero{background:#233d32;color:#fff;padding:32px 36px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px;border-bottom:5px solid #b18b54}.hero p{color:#dae5da;margin-top:9px}.hero button{background:#ead5ac;border-color:#ead5ac;color:#24382e}
 .home-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}.stack{display:grid;gap:20px}
@@ -31,11 +31,12 @@ textarea,input[type=text],input[type=url],#modelKey{display:block;width:100%;bor
 .style-preset-tools{margin:0 0 18px;padding:14px 16px;background:#eef1e9;border:1px solid var(--line);border-radius:9px}.style-preset-tools label{margin:0}.style-preset-tools select,.chapter-style-picker select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fffdf8}.style-preset-preview{margin-top:10px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}.style-preset-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.stat-card{padding:18px;border:1px solid var(--line);border-radius:9px;background:#fffdf8}.stat-card strong{display:block;font:34px/1.2 Georgia,serif;color:var(--green)}.stat-card span{display:block;margin-top:5px;color:var(--muted);font-size:13px}.stats-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.stats-list{display:grid;gap:8px;margin-top:14px}.stats-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.stats-row div{min-width:0}.stats-row strong,.stats-row small{overflow-wrap:anywhere}.stats-row>span{white-space:nowrap;color:#8a714a;font-weight:700}.stats-empty{padding:20px 0;color:var(--muted)}
 .editor-layout{margin:10px 0 14px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#f8f6ef}.editor-layout summary{cursor:pointer;font-weight:600}.editor-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.editor-controls label{min-width:0;margin:0}.editor-controls input,.editor-controls select{width:100%;padding:6px 7px;border:1px solid var(--line);border-radius:6px;background:#fffdf8}.editor-controls .wide{grid-column:1/-1}.editor-layout-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.editor-layout-actions button{padding:5px 9px;font-size:12px}
-.desk{display:grid;grid-template-columns:195px minmax(0,1fr) 225px;min-height:calc(100vh - 66px)}.chapters,.context{padding:20px 15px;background:#f0eee5}.chapters{border-right:1px solid var(--line)}.context{border-left:1px solid var(--line)}.chapters button{width:100%;margin-top:8px;text-align:left}.editor{min-width:0;padding:20px}.toolbar{margin-bottom:15px}.sheet{max-width:760px;margin:auto;background:var(--white);padding:26px;border:1px solid var(--line);border-radius:8px}.sheet input{font-size:25px;font-weight:bold}.sheet textarea{min-height:395px;font:18px/2.05 SimSun,serif;border:0;background:transparent;padding:16px 0}.context p{margin-top:10px}.context h3:not(:first-child){margin-top:22px}
+.desk{display:grid;grid-template-columns:195px minmax(0,1fr) 225px;min-height:calc(100vh - 66px)}.chapters,.context{padding:20px 15px;background:#f0eee5}.chapters{border-right:1px solid var(--line)}.context{border-left:1px solid var(--line)}.chapters button{width:100%;margin-top:8px;text-align:left}.volume-tools{display:grid;gap:8px;margin:10px 0 14px}.volume-tools label{margin:0}.volume-tools select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:#fffdf8}.volume-empty{margin:12px 0;padding:12px;border:1px dashed var(--line);border-radius:7px;color:var(--muted);font-size:13px;text-align:center}.chapter-volume-label{display:block;margin-top:2px;color:var(--muted);font-size:12px;font-weight:400}.editor{min-width:0;padding:20px}.toolbar{margin-bottom:15px}.sheet{max-width:760px;margin:auto;background:var(--white);padding:26px;border:1px solid var(--line);border-radius:8px}.sheet input{font-size:25px;font-weight:bold}.sheet textarea{min-height:395px;font:18px/2.05 SimSun,serif;border:0;background:transparent;padding:16px 0}.context p{margin-top:10px}.context h3:not(:first-child){margin-top:22px}
 .writing-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:15px}.writing-work-picker{display:grid;grid-template-columns:minmax(130px,.85fr) minmax(180px,1.15fr);gap:8px;flex:0 1 470px;min-width:320px}.writing-book-search,.writing-book-selector{min-width:0;margin:0}.writing-book-search input,.writing-book-selector select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fffdf8}.writing-actions{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px}
 @media(max-width:760px){.writing-work-picker{grid-template-columns:1fr;min-width:0;flex-basis:100%}}
 .import-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:20px}.list{margin:12px 0}.list label{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
 .source-import summary{cursor:pointer;font-weight:600}.source-import[open] summary{margin-bottom:14px}
+.url-import-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}.url-import-form label{margin:0}.url-import-form input{min-width:0}.url-import-form button{white-space:nowrap}.import-status{min-height:1.6em;margin-top:8px}.import-supported{margin-top:8px;line-height:1.7}
 .source-reader{margin-top:20px;padding:0;min-width:0}
 .analysis-grid{display:grid;grid-template-columns:minmax(200px, .85fr) minmax(300px, 1.5fr) minmax(225px, 1fr);gap:16px;align-items:stretch}
 .analysis-grid>.panel{min-width:0;display:flex;flex-direction:column;align-items:stretch}
@@ -63,7 +64,7 @@ textarea,input[type=text],input[type=url],#modelKey{display:block;width:100%;bor
 .reader-paper{max-width:44em;margin:auto;padding:clamp(22px,5vw,58px) clamp(18px,4vw,42px);font-size:18px}
 .reader-paper h2{margin-bottom:20px;overflow-wrap:anywhere}.reader-prose{font-family:"Noto Serif SC","Songti SC",SimSun,serif;line-height:2;white-space:pre-wrap;overflow-wrap:anywhere;min-height:12em}.reader-prose::selection{background:#d8e6d6;color:#20382d}
 .source-search{flex-basis:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.6fr) auto auto;align-items:end;gap:8px}.source-search select,.source-search input{padding:7px 9px}.source-search button{white-space:nowrap}.source-search-status{grid-column:1/-1}.reader-prose mark{background:#f4db9d;color:inherit;scroll-margin-top:16rem}.reader-prose mark::selection{background:#bad6b7}
-@media(max-width:850px){.reader-tools{position:static}.source-search{grid-template-columns:1fr 1fr}.source-search .search-keyword{grid-column:1/-1}.reader-prose mark{scroll-margin-top:2rem}}
+@media(max-width:850px){.reader-tools{position:static}.source-search{grid-template-columns:1fr 1fr}.source-search .search-keyword{grid-column:1/-1}.reader-prose mark{scroll-margin-top:2rem}.url-import-form{grid-template-columns:1fr}}
 .material-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.material-filters details{min-width:0;border:1px solid var(--line);border-radius:7px;padding:8px 10px}.material-filters summary{cursor:pointer}.filter-options{max-height:12rem;overflow:auto}.filter-options label{display:flex;align-items:start;gap:6px;margin:7px 0;overflow-wrap:anywhere}
 .material-pagination{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}.material-pagination button{padding:5px 10px}.material-pagination span{min-width:94px;text-align:center;color:var(--muted);font-size:13px}.material-pagination button:disabled,.filter-pagination button:disabled{opacity:.42;cursor:default}.filter-pagination{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.filter-pagination button{padding:3px 7px;font-size:12px}.filter-pagination span{min-width:72px;text-align:center;color:var(--muted);font-size:12px}
 .material-tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.material-tags button{padding:3px 8px;font-size:13px;overflow-wrap:anywhere;max-width:100%}.material-tags button[aria-pressed=true]{background:#e4ece2;border-color:var(--green)}
@@ -80,12 +81,21 @@ html[data-theme] .rail{background:var(--rail-bg);border-color:var(--rail-border)
 dialog{width:min(610px,92vw);border:1px solid var(--line);border-radius:12px;padding:25px;background:var(--white);color:var(--ink)}dialog::backdrop{background:#20282085}dialog textarea{margin:12px 0} #status{position:fixed;bottom:18px;right:24px;background:#243b31;color:#fff;padding:9px 14px;border-radius:7px;max-width:85vw}
 @media(max-width:1050px){.desk{grid-template-columns:140px minmax(0,1fr)}.context{grid-column:2}.shell{grid-template-columns:155px minmax(0,1fr)}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.stats-columns{grid-template-columns:1fr}}
-@media(max-width:720px){.shell,.home-grid,.import-grid{display:block}.rail{padding:12px;gap:8px}.rail nav{display:flex;flex-wrap:wrap}.rail footer{display:none}.page{padding:20px 14px}.hero{padding:20px}.hero h1{font-size:29px}.stack,.import-grid>aside{margin-top:14px}.desk{grid-template-columns:108px minmax(0,1fr)}.editor,.sheet{padding:10px}.top{padding:0 14px}}
+@media(max-width:720px){.shell,.home-grid,.import-grid{display:block}.rail{padding:12px;gap:8px}.brand-logo{width:34px;height:34px}.brand-name{font-size:15px}.rail nav{display:flex;flex-wrap:wrap}.rail footer{display:none}.page{padding:20px 14px}.hero{padding:20px}.hero h1{font-size:29px}.stack,.import-grid>aside{margin-top:14px}.desk{grid-template-columns:108px minmax(0,1fr)}.editor,.sheet{padding:10px}.top{padding:0 14px}}
 </style>
 <body>
 <div class="shell">
 <aside class="rail">
-  <div class="rail-title serif">小说工作台</div>
+  <div class="rail-title brand" aria-label="小鱼小说写作">
+    <svg class="brand-logo" viewBox="0 0 64 64" role="img" aria-hidden="true">
+      <circle cx="32" cy="32" r="28" fill="#fffdf7" stroke="#9b743d" stroke-width="4"/>
+      <path d="M32 7a25 25 0 0 1 0 50 12.5 12.5 0 0 1 0-25 12.5 12.5 0 0 0 0-25Z" fill="#1f2a24"/>
+      <circle cx="39" cy="20" r="3.2" fill="#fffdf7"/>
+      <circle cx="25" cy="44" r="3.2" fill="#1f2a24"/>
+      <path d="M12 17c2.8-4.4 6.8-7.8 11.5-9.7M52 47c-2.8 4.4-6.8 7.8-11.5 9.7" fill="none" stroke="#c49a5c" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">小鱼小说写作</span>
+  </div>
   <nav aria-label="工作区">
     <button data-page="home">首页与书架</button>
     <button data-page="plan">分步建书</button>
@@ -140,7 +150,15 @@ dialog{width:min(610px,92vw);border:1px solid var(--line);border-radius:12px;pad
   </section>
   <section id="write" hidden>
     <div class="desk">
-      <aside class="chapters"><h3>卷章目录</h3><p class="muted small">第一卷 · 回港</p><div id="chapterList"></div><button id="addChapter">＋ 新建章</button></aside>
+      <aside class="chapters">
+        <h3>卷章目录</h3>
+        <div class="volume-tools">
+          <label><span class="muted small">筛选卷</span><select id="writingVolumeFilter"></select></label>
+          <button type="button" id="addVolume">＋ 新建卷</button>
+        </div>
+        <div id="chapterList"></div>
+        <button id="addChapter">＋ 新建章</button>
+      </aside>
       <article class="editor"><div class="writing-toolbar">
         <div class="writing-work-picker">
           <label class="writing-book-search"><span class="muted small">搜索作品</span><input type="search" id="writingWorkSearch" placeholder="输入书名"></label>
@@ -186,8 +204,13 @@ dialog{width:min(610px,92vw);border:1px solid var(--line);border-radius:12px;pad
     <header class="intro"><h1>参考小说</h1><p class="muted">导入后可选取章节片段，保存在素材库。</p></header>
     <details class="panel source-import" id="sourceImport" open>
       <summary>导入小说</summary>
-        <form id="urlForm"><label><span>七猫小说链接</span><input id="sourceUrl" type="url" disabled placeholder="七猫网址导入待接入"></label></form>
-        <label style="margin-top:14px"><span>或选择本地 TXT</span><input id="txtFile" type="file" accept=".txt,text/plain"></label>
+        <form id="urlForm" class="url-import-form">
+          <label><span>在线小说网址</span><input id="sourceUrl" type="url" placeholder="粘贴公开小说章节或整本阅读页地址" required></label>
+          <button type="submit" id="importSourceUrl">读取网址</button>
+        </form>
+        <label style="margin-top:14px"><span>或选择本地小说文件</span><input id="txtFile" type="file" accept=".txt,.md,.markdown,.html,.htm,.xhtml,.epub,.docx,.rtf,text/plain,text/markdown,text/html,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf"></label>
+        <p class="muted small import-supported">支持 TXT、Markdown、HTML、EPUB、DOCX、RTF。在线网页需可公开访问，登录页、验证码页和依赖脚本动态渲染的页面可能无法直接读取。</p>
+        <p class="import-status muted small" id="sourceImportStatus" role="status"></p>
         <div id="importPreview" hidden><h3>选择要导入的章节</h3><div class="list" id="importList"></div><button class="primary" id="importSelected">导入所选章节</button></div>
     </details>
     <article class="panel source-reader" id="sourceReader" hidden>
@@ -262,10 +285,16 @@ dialog{width:min(610px,92vw);border:1px solid var(--line);border-radius:12px;pad
     </div>
   </section>
   <section class="page" id="analysis" hidden>
-    <header class="intro"><h1>竞品拆书</h1><p class="muted">导入整本 TXT，逐章拆解节奏、卖点和章末钩子。</p></header>
+    <header class="intro"><h1>竞品拆书</h1><p class="muted">从在线网址或本地文件导入整本小说，逐章拆解节奏、卖点和章末钩子。</p></header>
     <div class="analysis-grid">
       <aside class="panel analysis-catalog">
-        <label><span>导入小说 TXT</span><input id="analysisFile" type="file" accept=".txt,text/plain"></label>
+        <form id="analysisUrlForm" class="url-import-form">
+          <label><span>在线小说网址</span><input id="analysisUrl" type="url" placeholder="粘贴公开小说章节或整本阅读页地址" required></label>
+          <button type="submit" id="importAnalysisUrl">读取网址</button>
+        </form>
+        <label style="margin-top:14px"><span>或导入本地小说文件</span><input id="analysisFile" type="file" accept=".txt,.md,.markdown,.html,.htm,.xhtml,.epub,.docx,.rtf,text/plain,text/markdown,text/html,application/epub+zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf"></label>
+        <p class="muted small import-supported">支持 TXT、Markdown、HTML、EPUB、DOCX、RTF。在线导入结果取决于目标页面是否公开可读。</p>
+        <p class="import-status muted small" id="analysisImportStatus" role="status"></p>
         <h3>拆书书籍</h3>
         <div class="analysis-book-tools" id="analysisBookTools" hidden>
           <label><span class="small muted">搜索书籍</span><input id="analysisBookSearch" type="text" placeholder="输入书名"></label>
@@ -687,9 +716,12 @@ function initializeAppearance() {
   };
 }
 initializeAppearance();
+function defaultVolumesFor(id) {
+  return [{id:'volume-1',title:id === 'sample' ? '第一卷 · 回港' : '第一卷'}];
+}
 const defaults = [
-  {title:'第一章 归港',text:'林照回到旧港时，潮水正漫过石阶。\n\n守塔人把一封信推到她面前。信封没有署名，封口却压着她父亲的铜印。',outline:'林照回到旧港，收到一封带有父亲铜印的信。'},
-  {title:'第二章 停摆的钟',text:'钟楼楼梯的木板受了潮。林照走到最上一级，听见背后有人叫她的名字。',outline:'林照登上钟楼，发现停摆的座钟留下了线索。'}
+  {title:'第一章 归港',text:'林照回到旧港时，潮水正漫过石阶。\n\n守塔人把一封信推到她面前。信封没有署名，封口却压着她父亲的铜印。',outline:'林照回到旧港，收到一封带有父亲铜印的信。',volumeId:'volume-1'},
+  {title:'第二章 停摆的钟',text:'钟楼楼梯的木板受了潮。林照走到最上一级，听见背后有人叫她的名字。',outline:'林照登上钟楼，发现停摆的座钟留下了线索。',volumeId:'volume-1'}
 ];
 let page = 'home', index = 0, step = 0, onLeave, timer;
 let workspace;
@@ -708,16 +740,20 @@ const archivedWorks = workspace.archivedWorks ?? [];
 const archivedSources = workspace.archivedSources ?? [];
 const archivedAnalyses = workspace.archivedAnalyses ?? [];
 const writingStats = workspace.writingStats ?? [];
-let work = works[0] || null, chapters = [], plans = [], saving = false;
+let work = works[0] || null, chapters = [], volumes = [], chapterVolumeFilter = '', plans = [], saving = false;
 function defaultChaptersFor(id) {
-  return id === 'sample' ? structuredClone(defaults) : [{title:'第一章',text:'',outline:''}];
+  return id === 'sample' ? structuredClone(defaults)
+    : [{title:'第一章',text:'',outline:'',volumeId:'volume-1'}];
 }
 function switchWork(next, { preserveStep = false } = {}) {
   if (!next) {
     work = null;
     chapters = [];
+    volumes = [];
+    chapterVolumeFilter = '';
     plans = [];
     step = 0;
+    renderVolumeFilter();
     el('chapterList').replaceChildren();
     el('chapterTitle').value = '';
     el('bodyText').value = '';
@@ -731,7 +767,17 @@ function switchWork(next, { preserveStep = false } = {}) {
     return;
   }
   work = next;
-  chapters = workspace['chapters:' + work.id] ?? defaultChaptersFor(work.id);
+  const savedVolumes = workspace['volumes:' + work.id];
+  volumes = Array.isArray(savedVolumes) && savedVolumes.length
+    ? structuredClone(savedVolumes)
+    : defaultVolumesFor(work.id);
+  const fallbackVolumeId = volumes[0].id;
+  chapters = structuredClone(workspace['chapters:' + work.id] ?? defaultChaptersFor(work.id))
+    .map(chapter => ({
+      ...chapter,
+      volumeId: volumes.some(volume => volume.id === chapter.volumeId) ? chapter.volumeId : fallbackVolumeId
+    }));
+  chapterVolumeFilter = '';
   plans = workspace['plans:' + work.id] ?? (work.id === 'sample' ? ['林照收到失踪父亲留下的信，回到旧港追查钟楼停摆的原因。'] : []);
   if (!preserveStep) step = 0;
   loadChapter(0); renderStep(); renderPlanWorkOptions(); renderWritingWorkOptions();
@@ -1049,6 +1095,55 @@ function applyChapter() {
   el('wordCount').textContent = '本章 ' + bodyInput.value.replace(/\s/g,'').length + ' 字';
   el('saveState').textContent = dirty() ? '未保存' : '已保存';
 }
+function volumeFor(id) {
+  return volumes.find(volume => volume.id === id);
+}
+function chapterIndexesForCurrentFilter() {
+  return chapters
+    .map((chapter,i) => ({chapter,i}))
+    .filter(({chapter}) => !chapterVolumeFilter || chapter.volumeId === chapterVolumeFilter)
+    .map(({i}) => i);
+}
+function renderVolumeFilter() {
+  const select = el('writingVolumeFilter');
+  if (!volumes.length) {
+    select.replaceChildren(new Option('暂无卷',''));
+    select.disabled = true;
+    return;
+  }
+  select.disabled = false;
+  const allOption = new Option('全部卷（' + chapters.length + ' 章）','');
+  const volumeOptions = volumes.map(volume => {
+    const count = chapters.filter(chapter => chapter.volumeId === volume.id).length;
+    return new Option(volume.title + '（' + count + ' 章）',volume.id);
+  });
+  select.replaceChildren(allOption,...volumeOptions);
+  select.value = volumes.some(volume => volume.id === chapterVolumeFilter) ? chapterVolumeFilter : '';
+}
+function renderChapterList() {
+  renderVolumeFilter();
+  const indexes = chapterIndexesForCurrentFilter();
+  if (!indexes.length) {
+    const empty = document.createElement('p');
+    empty.className = 'volume-empty';
+    empty.textContent = chapterVolumeFilter ? '本卷还没有章节，点击下方「新建章」开始写作。' : '还没有章节。';
+    el('chapterList').replaceChildren(empty);
+    return;
+  }
+  el('chapterList').replaceChildren(...indexes.map(n => {
+    const chapter = chapters[n];
+    const volume = volumeFor(chapter.volumeId);
+    const button = document.createElement('button');
+    const label = document.createElement('span');
+    button.append(document.createTextNode(chapter.title));
+    label.className = 'chapter-volume-label';
+    label.textContent = volume?.title || '未分卷';
+    button.append(label);
+    button.classList.toggle('selected',n === index);
+    button.onclick = () => { if (n !== index) guard(() => loadChapter(n)); };
+    return button;
+  }));
+}
 function loadChapter(i) {
   lastAiEdit = undefined;
   pendingAiChars = 0;
@@ -1058,12 +1153,7 @@ function loadChapter(i) {
   el('chapterStyle').value = chapters[i].stylePreset || '';
   renderChapterStyleHint();
   renderWritingNotes();
-  el('chapterList').replaceChildren(...chapters.map((chapter, n) => {
-    const button = document.createElement('button');
-    button.textContent = chapter.title; button.classList.toggle('selected',n === i);
-    button.onclick = () => { if (n !== index) guard(() => loadChapter(n)); };
-    return button;
-  }));
+  renderChapterList();
   applyChapter();
 }
 async function saveChapter() {
@@ -1072,7 +1162,7 @@ async function saveChapter() {
   const previousText = chapters[index]?.text || '';
   const aiChars = pendingAiChars;
   const next = chapters.map((chapter, i) => i === index
-    ? {title:titleInput.value.trim(),text:bodyInput.value,outline:outlineInput.value,stylePreset:el('chapterStyle').value}
+    ? {...chapter,title:titleInput.value.trim(),text:bodyInput.value,outline:outlineInput.value,stylePreset:el('chapterStyle').value}
     : chapter);
   saving = true;
   [titleInput, bodyInput, outlineInput].forEach(input => input.readOnly = true);
@@ -1091,8 +1181,32 @@ async function saveChapter() {
 titleInput.oninput = bodyInput.oninput = outlineInput.oninput = applyChapter;
 el('chapterStyle').onchange = () => { renderChapterStyleHint(); applyChapter(); };
 el('saveChapter').onclick = saveChapter;
+el('writingVolumeFilter').onchange = () => guard(() => {
+  chapterVolumeFilter = el('writingVolumeFilter').value;
+  const indexes = chapterIndexesForCurrentFilter();
+  if (!chapterVolumeFilter || indexes.includes(index) || !indexes.length) {
+    renderChapterList();
+    if (!indexes.length) notify('本卷还没有章节，点击「新建章」开始写作。');
+    return;
+  }
+  loadChapter(indexes[0]);
+});
+el('addVolume').onclick = () => guard(async () => {
+  const title = window.prompt('新卷名称，例如：第二卷 · 风起')?.trim();
+  if (!title) return;
+  const nextVolumes = [...volumes,{id:crypto.randomUUID(),title}];
+  if (!await persist('volumes:' + work.id,nextVolumes)) return;
+  volumes = nextVolumes;
+  chapterVolumeFilter = volumes.at(-1).id;
+  renderChapterList();
+  notify('已新建「' + title + '」，可继续新建章节。');
+});
 el('addChapter').onclick = () => guard(() => {
-  chapters.push({title:'第 ' + (chapters.length + 1) + ' 章',text:'',outline:'',stylePreset:''});
+  const targetVolume = volumeFor(chapterVolumeFilter) ?? volumeFor(chapters[index]?.volumeId) ?? volumes[0];
+  if (!targetVolume) return notify('请先新建一卷。');
+  const chapterNumber = chapters.filter(chapter => chapter.volumeId === targetVolume.id).length + 1;
+  chapters.push({title:'第 ' + chapterNumber + ' 章',text:'',outline:'',stylePreset:'',volumeId:targetVolume.id});
+  if (chapterVolumeFilter) chapterVolumeFilter = targetVolume.id;
   loadChapter(chapters.length - 1); titleInput.focus();
 });
 el('stay').onclick = () => {
@@ -1478,14 +1592,61 @@ function preview(items) {
   }));
   el('importPreview').hidden = false;
 }
+async function requestBookImport({ file, url } = {}) {
+  const response = file
+    ? await fetch('/api/import-book',{
+        method:'POST',
+        headers:{'Content-Type':'application/octet-stream','X-File-Name':encodeURIComponent(file.name)},
+        body:file
+      })
+    : await fetch('/api/import-book',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({url})
+      });
+  let result;
+  try { result = await response.json(); }
+  catch { throw new Error('导入服务没有返回有效结果'); }
+  if (!response.ok) throw new Error(result.error || '小说导入失败');
+  if (!result.text?.trim()) throw new Error('没有从导入内容中识别到小说正文');
+  return result;
+}
+function setSourceImportBusy(busy) {
+  el('txtFile').disabled = el('sourceUrl').disabled = el('importSourceUrl').disabled = el('importSelected').disabled = busy;
+}
 el('txtFile').onchange = async event => {
   const file = event.target.files[0];
   if (!file) return;
+  setSourceImportBusy(true);
+  el('sourceImportStatus').textContent = '正在读取并识别文件…';
   try {
-    const text = decodeBook(await file.arrayBuffer());
-    if (!text.trim()) { notify('这个 TXT 没有正文。'); return; }
-    preview([{title:file.name,text,url:''}]);
-  } catch { notify('无法读取这个 TXT 文件。'); }
+    const book = await requestBookImport({ file });
+    preview([{title:book.title || file.name,text:book.text,url:book.sourceUrl || ''}]);
+    el('sourceImportStatus').textContent = '已读取 ' + book.format + ' · ' + countChapterChars(book.text).toLocaleString('zh-CN') + ' 字，请选择章节后导入。';
+  } catch (error) {
+    el('sourceImportStatus').textContent = error.message;
+    notify(error.message);
+  } finally {
+    setSourceImportBusy(false);
+    event.target.value = '';
+  }
+};
+el('urlForm').onsubmit = async event => {
+  event.preventDefault();
+  const url = el('sourceUrl').value.trim();
+  if (!url) return;
+  setSourceImportBusy(true);
+  el('sourceImportStatus').textContent = '正在读取在线小说页面…';
+  try {
+    const book = await requestBookImport({ url });
+    preview([{title:book.title || '在线小说',text:book.text,url:book.sourceUrl || url}]);
+    el('sourceImportStatus').textContent = '已读取在线内容 · ' + countChapterChars(book.text).toLocaleString('zh-CN') + ' 字，请选择章节后导入。';
+  } catch (error) {
+    el('sourceImportStatus').textContent = error.message;
+    notify(error.message);
+  } finally {
+    setSourceImportBusy(false);
+  }
 };
 function showReader(selected = Number(el('sourceSelect').value)) {
   el('sourceReader').hidden = imported.length === 0;
@@ -1673,14 +1834,15 @@ el('importSelected').onclick = async () => {
   });
   const count = next.length - imported.length;
   if (!count) { notify('所选章节已导入'); return; }
-  button.disabled = el('txtFile').disabled = true;
+  setSourceImportBusy(true);
   try {
     if (!await persist('sources',next)) return;
     const firstNew = imported.length;
     imported.push(...next.slice(firstNew));
     showReader(firstNew); el('importPreview').hidden = true;
+    el('sourceImportStatus').textContent = '';
     notify('已导入 ' + count + ' 项');
-  } finally { button.disabled = el('txtFile').disabled = false; }
+  } finally { setSourceImportBusy(false); }
 };
 const materialTypes = {
   weapon:{name:'武器库',fields:[['subtype','兵器类型'],['composition','材质'],['shape','形状'],['power','威力']]},
@@ -2196,6 +2358,7 @@ async function archiveWork(item) {
     ...item,
     archivedAt:new Date().toISOString(),
     chapters:structuredClone(workspace['chapters:' + item.id] ?? defaultChaptersFor(item.id)),
+    volumes:structuredClone(workspace['volumes:' + item.id] ?? defaultVolumesFor(item.id)),
     plans:structuredClone(workspace['plans:' + item.id] ?? [])
   };
   const nextArchive = [snapshot,...archivedWorks];
@@ -2237,13 +2400,6 @@ el('createWork').onclick = async () => {
   booksPage = Math.floor((works.length - 1) / booksPerPage);
   renderBooks(); switchWork(item); show('plan');
 };
-function decodeBook(buffer) {
-  const bytes = new Uint8Array(buffer);
-  if (bytes[0] === 255 && bytes[1] === 254) return new TextDecoder('utf-16le').decode(bytes);
-  if (bytes[0] === 254 && bytes[1] === 255) return new TextDecoder('utf-16be').decode(bytes);
-  try { return new TextDecoder('utf-8',{fatal:true}).decode(bytes); }
-  catch { return new TextDecoder('gb18030').decode(bytes); }
-}
 function splitBook(raw) {
   const chapters = [];
   let title = '前言', body = [];
@@ -2297,7 +2453,7 @@ function refreshAnalysis(message) {
   el('analysisBookActions').hidden = !book;
   el('archiveAnalysisBook').disabled = el('deleteAnalysisBook').disabled = analyzing || !book;
   el('analysisCurrentTitle').textContent = chapter?.title || '逐章分析';
-  el('analysisProgress').textContent = message || (book ? '已分析 ' + done + ' / ' + book.chapters.length + ' 节' : '请选择一个 TXT 文件。');
+  el('analysisProgress').textContent = message || (book ? '已分析 ' + done + ' / ' + book.chapters.length + ' 节' : '请导入或选择一本小说。');
   const original = el('analysisOriginal');
   if (original.textContent !== (chapter?.text || '')) original.textContent = chapter?.text || '';
   showAnalysisResult('Chapter',book,pending ?? chapter?.result,!pending);
@@ -2306,7 +2462,7 @@ function refreshAnalysis(message) {
   el('retryChapterSave').disabled = analyzing;
   showAnalysisResult('Opening',book,book?.opening);
   showAnalysisResult('Book',book,book?.report);
-  el('analysisFile').disabled = analyzing;
+  el('analysisFile').disabled = el('analysisUrl').disabled = el('importAnalysisUrl').disabled = analyzing;
   const hasPending = book?.chapters.some((_,i) => pendingChapterResult(book,i));
   el('analyzeAll').disabled = analyzing || !book || (done === book.chapters.length && !hasPending);
   el('analyzeOne').disabled = analyzing || !chapter || Boolean(pending);
@@ -2432,21 +2588,45 @@ async function runAnalysis(action, {batch = false, status = '正在调用模型�
   catch (error) { message = error.message + ' 已保存的结果仍可查看。'; }
   finally { analyzing = false; batchAnalysis = false; refreshAnalysis(message); }
 }
+async function saveImportedAnalysisBook(result) {
+  const chapters = splitBook(result.text);
+  if (!chapters.length) throw new Error('这个文件没有可识别的小说正文。');
+  const book = {id:crypto.randomUUID(),title:result.title || '未命名小说',chapters};
+  const next = [...analysisBooks,book];
+  if (!await persist('analyses',next)) throw new Error('无法保存导入结果。');
+  analysisBooks = next;
+  resetAnalysisBookBrowser(book.id);
+  el('analysisImportStatus').textContent = '已导入 ' + (result.format || '小说') + ' · ' + chapters.length + ' 节。';
+  return '已导入 ' + chapters.length + ' 节。' + (openingChapters(book).length < 3 ? '黄金三章深析需要至少三章正文。' : '');
+}
 el('analysisFile').onchange = event => {
   const file = event.target.files[0];
   if (!file) return;
+  el('analysisImportStatus').textContent = '正在读取并识别文件…';
   return runAnalysis(async () => {
     try {
-      const chapters = splitBook(decodeBook(await file.arrayBuffer()));
-      if (!chapters.length) throw new Error('这个 TXT 没有可识别的正文。');
-      const book = {id:crypto.randomUUID(),title:file.name,chapters};
-      const next = [...analysisBooks,book];
-      if (!await persist('analyses',next)) throw new Error('无法保存导入结果。');
-      analysisBooks = next;
-      resetAnalysisBookBrowser(book.id);
-      return '已导入 ' + chapters.length + ' 节。' + (openingChapters(book).length < 3 ? '黄金三章深析需要至少三章正文。' : '');
-    } finally { event.target.value = ''; }
-  }, {status:'正在读取 TXT…'});
+      return await saveImportedAnalysisBook(await requestBookImport({ file }));
+    } catch (error) {
+      el('analysisImportStatus').textContent = error.message;
+      throw error;
+    } finally {
+      event.target.value = '';
+    }
+  }, {status:'正在读取小说文件…'});
+};
+el('analysisUrlForm').onsubmit = event => {
+  event.preventDefault();
+  const url = el('analysisUrl').value.trim();
+  if (!url) return;
+  el('analysisImportStatus').textContent = '正在读取在线小说页面…';
+  return runAnalysis(async () => {
+    try {
+      return await saveImportedAnalysisBook(await requestBookImport({ url }));
+    } catch (error) {
+      el('analysisImportStatus').textContent = error.message;
+      throw error;
+    }
+  }, {status:'正在读取在线小说…'});
 };
 async function requestAnalysis(mode, content) {
   const body = JSON.stringify({mode,content});
@@ -2575,9 +2755,13 @@ function archiveEmpty(message) {
   return empty;
 }
 async function restoreArchivedWork(snapshot) {
-  const { archivedAt, chapters:archivedChapters, plans:archivedPlans = [], ...item } = snapshot;
+  const { archivedAt, chapters:archivedChapters, volumes:archivedVolumes, plans:archivedPlans = [], ...item } = snapshot;
   const restoredChapters = archivedChapters?.length ? archivedChapters : defaultChaptersFor(item.id);
+  const restoredVolumes = Array.isArray(archivedVolumes) && archivedVolumes.length
+    ? archivedVolumes
+    : defaultVolumesFor(item.id);
   if (!await persist('chapters:' + item.id,restoredChapters) ||
+      !await persist('volumes:' + item.id,restoredVolumes) ||
       !await persist('plans:' + item.id,archivedPlans)) return;
   const nextWorks = [...works,item];
   if (!await persist('works',nextWorks)) return;

@@ -1,9 +1,11 @@
-import { createServer } from 'node:http';
+import { createServer, get as httpGet } from 'node:http';
 import { mkdirSync, readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, extname, posix } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { execFileSync } from 'node:child_process';
 import { get as httpsGet } from 'node:https';
+import { isIP } from 'node:net';
+import { inflateRawSync } from 'node:zlib';
 
 const html = readFileSync(new URL('./index.html', import.meta.url));
 const appVersion = '0.1.2';
@@ -64,6 +66,249 @@ async function readJson(request, limit) {
     chunks.push(chunk);
   }
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
+async function readBuffer(request) {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
+function decodeBookBuffer(buffer) {
+  if (buffer[0] === 255 && buffer[1] === 254) return new TextDecoder('utf-16le').decode(buffer);
+  if (buffer[0] === 254 && buffer[1] === 255) return new TextDecoder('utf-16be').decode(buffer);
+  try { return new TextDecoder('utf-8',{ fatal:true }).decode(buffer); }
+  catch { return new TextDecoder('gb18030').decode(buffer); }
+}
+function zipEntries(buffer) {
+  let end = -1;
+  const stop = Math.max(0,buffer.length - 65557);
+  for (let i = buffer.length - 22; i >= stop; i--) {
+    if (buffer.readUInt32LE(i) === 0x06054b50) { end = i; break; }
+  }
+  if (end < 0) throw new Error('无法识别压缩文件结构');
+  const count = buffer.readUInt16LE(end + 10);
+  let position = buffer.readUInt32LE(end + 16);
+  const entries = new Map();
+  let totalSize = 0;
+  for (let i = 0; i < count; i++) {
+    if (position + 46 > buffer.length || buffer.readUInt32LE(position) !== 0x02014b50) {
+      throw new Error('压缩文件目录损坏');
+    }
+    const method = buffer.readUInt16LE(position + 10);
+    const compressedSize = buffer.readUInt32LE(position + 20);
+    const nameLength = buffer.readUInt16LE(position + 28);
+    const extraLength = buffer.readUInt16LE(position + 30);
+    const commentLength = buffer.readUInt16LE(position + 32);
+    const localOffset = buffer.readUInt32LE(position + 42);
+    const name = buffer.subarray(position + 46,position + 46 + nameLength).toString('utf8').replaceAll('\\','/');
+    position += 46 + nameLength + extraLength + commentLength;
+    if (!name || name.endsWith('/')) continue;
+    if (localOffset + 30 > buffer.length || buffer.readUInt32LE(localOffset) !== 0x04034b50) {
+      throw new Error('压缩文件条目损坏');
+    }
+    const localNameLength = buffer.readUInt16LE(localOffset + 26);
+    const localExtraLength = buffer.readUInt16LE(localOffset + 28);
+    const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+    if (dataStart + compressedSize > buffer.length) throw new Error('压缩文件内容不完整');
+    const compressed = buffer.subarray(dataStart,dataStart + compressedSize);
+    let content;
+    if (method === 0) content = compressed;
+    else if (method === 8) content = inflateRawSync(compressed);
+    else continue;
+    totalSize += content.length;
+    if (totalSize > 128 * 1024 * 1024) throw new Error('压缩文件解压后过大');
+    entries.set(name,content);
+  }
+  return entries;
+}
+function zipResolve(base,href) {
+  const clean = decodeURIComponent(href.split('#')[0]).replaceAll('\\','/');
+  return posix.normalize(posix.join(posix.dirname(base),clean)).replace(/^\/+/,'');
+}
+function xmlToText(value) {
+  return decodeHtml(String(value ?? '')
+    .replace(/<w:tab\b[^>]*\/?>/gi,'\t')
+    .replace(/<w:br\b[^>]*\/?>/gi,'\n')
+    .replace(/<\/w:p>/gi,'\n')
+    .replace(/<[^>]+>/g,''))
+    .replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function htmlToNovelText(source,fallbackTitle = '') {
+  const clean = String(source ?? '')
+    .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1>/gi,' ')
+    .replace(/<!--[\s\S]*?-->/g,' ');
+  const titleMatch = clean.match(/<title[^>]*>([\s\S]*?)<\/title>/i) ?? clean.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const title = htmlText(titleMatch?.[1] ?? '') || fallbackTitle;
+  const body = clean.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1]
+    ?? clean.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1]
+    ?? clean.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1]
+    ?? clean;
+  const text = decodeHtml(body
+    .replace(/<br\b[^>]*\/?>/gi,'\n')
+    .replace(/<\/(?:p|div|section|article|main|h[1-6]|li|blockquote|tr|dd|dt)>/gi,'\n')
+    .replace(/<[^>]+>/g,''))
+    .replace(/\u00a0/g,' ')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+  return { title:title || '在线小说', text };
+}
+function parseRtf(buffer) {
+  let value = decodeBookBuffer(buffer)
+    .replace(/\\u(-?\d+)\??/g,(_,number) => String.fromCharCode((Number(number) + 65536) % 65536))
+    .replace(/(?:\\'[0-9a-f]{2})+/gi,sequence => decodeBookBuffer(Buffer.from(
+      [...sequence.matchAll(/\\'([0-9a-f]{2})/gi)].map(match => Number.parseInt(match[1],16))
+    )));
+  return value
+    .replace(/\\par[d]?/gi,'\n')
+    .replace(/\\tab/gi,'\t')
+    .replace(/\\[a-z]+-?\d* ?/gi,'')
+    .replace(/[{}]/g,'')
+    .replace(/\r/g,'')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function parseEpub(buffer,filename) {
+  const entries = zipEntries(buffer);
+  const container = entries.get('META-INF/container.xml')?.toString('utf8') ?? '';
+  const rootPath = container.match(/<rootfile\b[^>]*full-path="([^"]+)"/i)?.[1];
+  const opfPath = rootPath ? decodeHtml(rootPath) : [...entries.keys()].find(name => name.toLowerCase().endsWith('.opf'));
+  const opf = opfPath ? entries.get(opfPath)?.toString('utf8') ?? '' : '';
+  const title = htmlText(opf.match(/<dc:title\b[^>]*>([\s\S]*?)<\/dc:title>/i)?.[1] ?? '')
+    || filename.replace(/\.epub$/i,'') || 'EPUB 小说';
+  const manifest = new Map();
+  for (const match of opf.matchAll(/<item\b([^>]+)>/gi)) {
+    const attributes = match[1];
+    const id = attributes.match(/\bid="([^"]+)"/i)?.[1];
+    const href = attributes.match(/\bhref="([^"]+)"/i)?.[1];
+    if (id && href) manifest.set(id,decodeHtml(href));
+  }
+  let paths = [];
+  for (const match of opf.matchAll(/<itemref\b([^>]+)>/gi)) {
+    const idref = match[1].match(/\bidref="([^"]+)"/i)?.[1];
+    const href = manifest.get(idref);
+    if (href) paths.push(opfPath ? zipResolve(opfPath,href) : href);
+  }
+  if (!paths.length) paths = [...entries.keys()].filter(name => /\.(?:x?html?|htm)$/i.test(name)).sort();
+  const sections = paths.map(path => {
+    const content = entries.get(path);
+    return content ? htmlToNovelText(content.toString('utf8')).text : '';
+  }).filter(Boolean);
+  return { title,text:sections.join('\n\n').trim(),format:'EPUB' };
+}
+function parseDocx(buffer,filename) {
+  const entries = zipEntries(buffer);
+  const documentXml = entries.get('word/document.xml');
+  if (!documentXml) throw new Error('DOCX 中找不到正文');
+  return {
+    title:filename.replace(/\.docx$/i,'') || 'Word 小说',
+    text:xmlToText(documentXml.toString('utf8')),
+    format:'DOCX'
+  };
+}
+function decodeBookFile(buffer,filename) {
+  const extension = extname(filename).toLowerCase();
+  if (!buffer.length) throw new Error('文件为空');
+  if (extension === '.epub') return parseEpub(buffer,filename);
+  if (extension === '.docx') return parseDocx(buffer,filename);
+  if (['.html','.htm','.xhtml'].includes(extension)) {
+    const parsed = htmlToNovelText(decodeBookBuffer(buffer),filename.replace(/\.[^.]+$/,''));
+    return { ...parsed,format:'HTML' };
+  }
+  if (extension === '.rtf') return { title:filename.replace(/\.rtf$/i,''),text:parseRtf(buffer),format:'RTF' };
+  if (['.txt','.md','.markdown','.text'].includes(extension)) {
+    return { title:filename.replace(/\.[^.]+$/,'') || '未命名小说',text:decodeBookBuffer(buffer),format:extension.slice(1).toUpperCase() || 'TXT' };
+  }
+  const text = decodeBookBuffer(buffer);
+  const binaryRatio = [...buffer.subarray(0,Math.min(buffer.length,4096))].filter(byte => byte === 0).length / Math.min(buffer.length,4096);
+  if (binaryRatio > 0.02) throw new Error('暂不支持这个文件格式，请使用 TXT、Markdown、HTML、EPUB、DOCX 或 RTF');
+  return { title:filename.replace(/\.[^.]+$/,'') || '未命名小说',text,format:'文本' };
+}
+function validateImportUrl(value) {
+  let url;
+  try { url = new URL(value); }
+  catch { throw new Error('请输入有效的在线小说网址'); }
+  if (!['http:','https:'].includes(url.protocol) || url.username || url.password) {
+    throw new Error('在线导入只支持公开的 HTTP 或 HTTPS 地址');
+  }
+  const hostname = url.hostname.replace(/^\[|\]$/g,'').toLowerCase();
+  const version = isIP(hostname);
+  const privateV4 = version === 4 && (
+    hostname === '0.0.0.0' || hostname.startsWith('10.') || hostname.startsWith('127.') ||
+    hostname.startsWith('169.254.') || hostname.startsWith('192.168.') ||
+    /^172\.(?:1[6-9]|2\d|3[01])\./.test(hostname)
+  );
+  const privateV6 = version === 6 && (
+    hostname === '::1' || hostname.startsWith('fc') || hostname.startsWith('fd') || hostname.startsWith('fe80:')
+  );
+  if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local') ||
+      hostname.endsWith('.internal') || privateV4 || privateV6) {
+    throw new Error('在线导入不接受本机或内网地址');
+  }
+  return url;
+}
+async function importOnlineNovel(value) {
+  const { target,buffer,contentType } = await requestImportUrl(value);
+  const pathname = decodeURIComponent(target.pathname);
+  const extension = extname(pathname).toLowerCase();
+  if (contentType.includes('html') || ['', '.html', '.htm', '.xhtml'].includes(extension)) {
+    const parsed = htmlToNovelText(decodeBookBuffer(buffer),target.hostname);
+    return { ...parsed,format:'在线网页',sourceUrl:target.href };
+  }
+  const parsed = decodeBookFile(buffer,pathname.split('/').pop() || 'online-novel.txt');
+  return { ...parsed,sourceUrl:target.href };
+}
+function requestImportUrl(value,redirects = 0) {
+  const target = validateImportUrl(value);
+  return new Promise((resolve,reject) => {
+    const get = target.protocol === 'https:' ? httpsGet : httpGet;
+    const request = get({
+      protocol:target.protocol,
+      hostname:target.hostname,
+      port:target.port || undefined,
+      path:target.pathname + target.search,
+      insecureHTTPParser:true,
+      headers:{
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36',
+        'Accept':'text/html,application/xhtml+xml,text/plain,application/epub+zip,application/octet-stream',
+        'Accept-Language':'zh-CN,zh;q=0.9',
+        'Accept-Encoding':'identity'
+      }
+    }, response => {
+      if ([301,302,303,307,308].includes(response.statusCode)) {
+        response.resume();
+        const location = response.headers.location;
+        if (!location || redirects >= 4) {
+          reject(new Error('网址重定向次数过多'));
+          return;
+        }
+        resolve(requestImportUrl(new URL(location,target).href,redirects + 1));
+        return;
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error('小说网址返回 HTTP ' + response.statusCode));
+        return;
+      }
+      const chunks = [];
+      let size = 0;
+      response.on('data',chunk => {
+        size += chunk.length;
+        if (size > 128 * 1024 * 1024) {
+          request.destroy(new Error('在线小说内容超过 128 MiB'));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.on('end',() => resolve({
+        target,
+        buffer:Buffer.concat(chunks),
+        contentType:String(response.headers['content-type'] ?? '').toLowerCase()
+      }));
+    });
+    request.setTimeout(30000,() => request.destroy(new Error('小说网址响应超时')));
+    request.on('error',reject);
+  });
 }
 
 const rankingBoards = {
@@ -839,7 +1084,7 @@ const write = db.prepare(`
   ON CONFLICT(key) DO UPDATE SET value = excluded.value
 `);
 const deleteValue = db.prepare('DELETE FROM workspace_values WHERE key = ?');
-const keys = /^(?:works|idea|sources|clips|materials|materialCategories|analyses|archivedWorks|archivedSources|archivedAnalyses|writingStats|chapters:[\w-]+|plans:[\w-]+)$/;
+const keys = /^(?:works|idea|sources|clips|materials|materialCategories|analyses|archivedWorks|archivedSources|archivedAnalyses|writingStats|chapters:[\w-]+|volumes:[\w-]+|plans:[\w-]+)$/;
 const server = createServer(async (request, response) => {
   const send = (status, value) => {
     if (response.destroyed) return;
@@ -904,6 +1149,7 @@ const server = createServer(async (request, response) => {
         try {
           write.run('works',JSON.stringify(works.filter(item => item.id !== id)));
           deleteValue.run('chapters:' + id);
+          deleteValue.run('volumes:' + id);
           deleteValue.run('plans:' + id);
           db.exec('COMMIT');
         } catch (error) {
@@ -912,6 +1158,7 @@ const server = createServer(async (request, response) => {
         }
       } else {
         deleteValue.run('chapters:' + id);
+        deleteValue.run('volumes:' + id);
         deleteValue.run('plans:' + id);
       }
       return send(200,{ deleted:true });
@@ -921,11 +1168,29 @@ const server = createServer(async (request, response) => {
   }
   const isSettings = request.method === 'PUT' && request.url === '/api/ai/settings';
   const isGeneration = request.method === 'POST' && request.url === '/api/ai/generate';
-  if (!isSettings && !isGeneration && (request.method !== 'PUT' || !request.url.startsWith('/api/value/'))) return send(404, { error: '路径不存在' });
+  const isImport = request.method === 'POST' && request.url === '/api/import-book';
+  if (!isSettings && !isGeneration && !isImport && (request.method !== 'PUT' || !request.url.startsWith('/api/value/'))) return send(404, { error: '路径不存在' });
   if (request.headers.origin !== origin || request.headers['content-type'] !== 'application/json') {
-    return send(403, { error: '无效的写入请求' });
+    if (!isImport || request.headers.origin !== origin) return send(403, { error: '无效的写入请求' });
   }
   try {
+    if (isImport) {
+      let book;
+      if (request.headers['content-type'] === 'application/json') {
+        const input = await readJson(request,16384);
+        if (!input || typeof input.url !== 'string' || !input.url.trim()) {
+          return send(400,{ error:'请填写在线小说网址' });
+        }
+        book = await importOnlineNovel(input.url.trim());
+      } else {
+        let filename = 'uploaded-novel.txt';
+        try { filename = decodeURIComponent(request.headers['x-file-name'] || filename); } catch {}
+        filename = filename.replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(-180);
+        book = decodeBookFile(await readBuffer(request),filename);
+      }
+      if (!book.text?.trim()) return send(400,{ error:'没有从导入内容中识别到小说正文' });
+      return send(200,book);
+    }
     if (isGeneration) {
       const controller = new AbortController();
       response.once('close', () => { if (!response.writableFinished) controller.abort(); });
